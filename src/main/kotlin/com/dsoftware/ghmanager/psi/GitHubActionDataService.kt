@@ -11,7 +11,7 @@ import com.google.common.cache.CacheBuilder
 import com.intellij.collaboration.api.dto.GraphQLRequestDTO
 import com.intellij.collaboration.api.dto.GraphQLResponseDTO
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -26,6 +26,7 @@ import com.intellij.util.ResourceUtil
 import com.intellij.util.ThrowableConvertor
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import kotlinx.serialization.Serializable
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.github.api.GithubApiContentHelper
 import org.jetbrains.plugins.github.api.GithubApiRequest.Post
 import org.jetbrains.plugins.github.api.GithubApiResponse
@@ -47,7 +48,7 @@ import java.util.concurrent.ScheduledFuture
 class GitHubActionDataService(
     private val project: Project
 ) : PersistentStateComponent<GitHubActionDataService.State?>, Disposable {
-    val actionsCache: Cache<String, GitHubAction> = CacheBuilder.newBuilder()
+    private val actionsCache: Cache<String, GitHubAction> = CacheBuilder.newBuilder()
         .expireAfterWrite(Duration.ofHours(1))
         .maximumSize(200)
         .build()
@@ -58,7 +59,9 @@ class GitHubActionDataService(
 
     private val settingsService = project.service<GhActionsSettingsService>()
     private val serverPath: String
-    private var requestExecutor: GhApiRequestExecutor? = null
+
+    @VisibleForTesting
+    internal var requestExecutor: GhApiRequestExecutor? = null
 
     private val actionsLoadedEventDispatcher = EventDispatcher.create(ActionsLoadedListener::class.java)
 
@@ -117,8 +120,8 @@ class GitHubActionDataService(
         val listenerDisposable = Disposer.newDisposable()
         Disposer.register(this, listenerDisposable)
         actionsLoadedEventDispatcher.addListener(object : ActionsLoadedListener {
-            override fun actionsLoaded() {
-                runReadAction(listenerMethod)
+            override fun actionsLoaded() = runInEdt {
+                listenerMethod()
                 listenerDisposable.dispose() // Ensure listener will only run once
             }
         }, listenerDisposable)
