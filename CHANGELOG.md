@@ -152,7 +152,7 @@
 ### 🐛 Bug Fixes
 
 - Using camel-case variable names in POJOs #99
-- WfRunsListPersistentSearchHistory state is not being save properly #102
+- WfRunsListPersistentSearchHistory state is not being saved properly #102
 - Fix updating logs from non-EDT #101
 
 ## 1.14.0
@@ -296,7 +296,7 @@
 ### Changed
 
 - Clean up code on `GhActionsManagerConfigurable` by @cunla in https://github.com/cunla/ghactions-manager/pull/71
-- Logpanel wrap by @cunla in https://github.com/cunla/ghactions-manager/pull/72
+- LogPanel wrap by @cunla in https://github.com/cunla/ghactions-manager/pull/72
 
 ## 1.7.0
 

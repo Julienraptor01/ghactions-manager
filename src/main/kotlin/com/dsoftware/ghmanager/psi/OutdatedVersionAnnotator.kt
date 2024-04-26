@@ -18,9 +18,8 @@ class OutdatedVersionAnnotator : Annotator {
         if (!element.isValid || element !is YAMLKeyValue) {
             return
         }
-        val yamlKeyValue = element as YAMLKeyValue
-        when (yamlKeyValue.keyText) {
-            FIELD_USES -> highlightAction(yamlKeyValue, holder)
+        when (element.keyText) {
+            FIELD_USES -> highlightAction(element, holder)
         }
     }
 
