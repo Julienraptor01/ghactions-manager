@@ -5,7 +5,6 @@ import com.dsoftware.ghmanager.i18n.MessagesBundle.message
 import com.dsoftware.ghmanager.toolwindow.executeSomeCoroutineTasksAndDispatchAllInvocationEvents
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.intellij.openapi.components.service
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.runInEdtAndWait
@@ -35,7 +34,7 @@ class OutdatedVersionAnnotatorTest {
         }
     }
 
-    fun createTestFixture(testName: String): CodeInsightTestFixture {
+    private fun createTestFixture(testName: String): CodeInsightTestFixture {
         val fixtureFactory = IdeaTestFixtureFactory.getFixtureFactory()
         val tempDirFixture = fixtureFactory.createTempDirTestFixture()
 
@@ -53,8 +52,7 @@ class OutdatedVersionAnnotatorTest {
         var actionLoaded = false
         val fixture = createTestFixture("testAnnotate")
         val psiFile = fixture.configureByText(
-            ".github/workflows/workflow1.yaml",
-            """           
+            ".github/workflows/workflow1.yaml", """           
             jobs:
               build:
                 name: Build
@@ -65,8 +63,7 @@ class OutdatedVersionAnnotatorTest {
             """.trimIndent()
         )
         val virtualFile = fixture.createFile(
-            ".github/workflows/workflow.yaml",
-            """
+            ".github/workflows/workflow.yaml", """
             jobs:
               build:
                 name: Build
