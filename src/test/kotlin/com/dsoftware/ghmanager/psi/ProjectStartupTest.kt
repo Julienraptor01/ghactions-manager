@@ -1,10 +1,13 @@
 package com.dsoftware.ghmanager.psi
 
+import com.intellij.codeInsight.navigation.openFileWithPsiElement
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.psi.PsiManager
 import com.intellij.testFramework.common.initTestApplication
 import com.intellij.testFramework.junit5.RunInEdt
 import com.intellij.testFramework.rules.ClassLevelProjectModelExtension
+import com.intellij.testFramework.useProject
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -26,8 +29,6 @@ class ProjectStartupTest {
 
     @Test
     fun testScanWorkflowFile() {
-        val startupActivity =
-            projectRule.project.extensionArea.getExtensionPoint<ProjectStartup>(ExtensionPointName("com.intellij.postStartupActivity"))
         val content = """
             jobs:
               build:
@@ -39,12 +40,16 @@ class ProjectStartupTest {
                     
             """.trimIndent()
         val workflowFile = projectRule.baseProjectDir
-            .newFile(".github/workflows/workflow1.yaml", content.toByteArray())
-
+            .newVirtualFile(".github/workflows/workflow1.yaml", content.toByteArray())
 
         val project = projectRule.project
-        val gitHubActionDataService = project.service<GitHubActionDataService>()
-        Assertions.assertEquals(1, gitHubActionDataService.actionsToResolve.size)
+        project.useProject {
+            val psiFile = PsiManager.getInstance(project).findFile(workflowFile)
+            openFileWithPsiElement(psiFile!!, true, true)
+            val gitHubActionDataService = project.service<GitHubActionDataService>()
+            Assertions.assertEquals(1, gitHubActionDataService.actionsToResolve.size)
+        }
+
 
 //        projectResource.after()
     }
