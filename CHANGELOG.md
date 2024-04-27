@@ -6,7 +6,15 @@
 
 ## 1.21.6
 
+### 🐛 Bug Fixes
+
 - Fix bug failing to load annotator #131
+- Fix scanning actions in composite action files
+
+### 🧰 Maintenance
+
+- Implement tests for startup scanning
+- Implement tests for highlighting and quickfixes of outdated actions
 
 ## 1.21.5
 
