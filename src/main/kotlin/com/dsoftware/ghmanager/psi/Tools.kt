@@ -9,7 +9,7 @@ import java.util.Collections
 object Tools {
     fun isActionFile(virtualFile: VirtualFile): Boolean {
         return (virtualFile.name == "action.yml" || virtualFile.name == "action.yaml")
-            && virtualFile.parent.path.endsWith(".github/actions")
+            && virtualFile.parent.parent.path.endsWith(".github/actions")
     }
 
     fun isWorkflowFile(virtualFile: VirtualFile): Boolean {
