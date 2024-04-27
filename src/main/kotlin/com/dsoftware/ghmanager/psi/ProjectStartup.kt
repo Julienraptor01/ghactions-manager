@@ -3,6 +3,7 @@ package com.dsoftware.ghmanager.psi
 import com.dsoftware.ghmanager.psi.GitHubWorkflowConfig.FIELD_USES
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
@@ -33,7 +34,7 @@ class ProjectStartup : ProjectActivity {
     }
 
     fun scanWorkflowFile(project: Project, workflowFile: VirtualFile) {
-        if (!Tools.isWorkflowFile(workflowFile) || !Tools.isActionFile(workflowFile)) {
+        if (!Tools.isWorkflowFile(workflowFile) && !Tools.isActionFile(workflowFile)) {
             return
         }
         runReadAction {
@@ -43,8 +44,13 @@ class ProjectStartup : ProjectActivity {
                 val actionNames = Tools.getYamlElementsWithKey(it, FIELD_USES).map { yamlKeyValue ->
                     yamlKeyValue.valueText.split("@").firstOrNull() ?: return@map null
                 }.filterNotNull()
+                LOG.info("Found ${actionNames.size} actions in file ${workflowFile.name}: $actionNames")
                 gitHubActionDataService.actionsToResolve.addAll(actionNames)
             }
         }
+    }
+
+    companion object {
+        val LOG = logger<ProjectStartup>()
     }
 }

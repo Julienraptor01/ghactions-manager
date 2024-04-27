@@ -131,10 +131,13 @@ class GitHubActionDataService(
         if (actionsToResolve.isEmpty()) {
             return
         }
+        val localActions = actionsToResolve.filter { Tools.isLocalAction(it) }.toSet()
+        actionsToResolve.removeAll(localActions)
         actionsToResolve.removeAll(actionsCache.asMap().keys)
         actionsToResolve.forEach {
             resolveGithubAction(it)
         }
+        actionsToResolve.removeAll(actionsCache.asMap().keys)
         actionsLoadedEventDispatcher.multicaster.actionsLoaded()
         actionsLoadedEventDispatcher.listeners.clear()
     }
@@ -161,14 +164,14 @@ class GitHubActionDataService(
             LOG.warn("No request executor available, skipping action resolution for $fullActionName")
             return
         }
+        if (Tools.isLocalAction(fullActionName)) { // TODO handle local actions
+            LOG.debug("Action $fullActionName is local, skipping resolution")
+            return
+        }
         LOG.debug("Resolving action $fullActionName")
         val parts = fullActionName.split("/")
         if (parts.size != 2) {
             LOG.warn("Invalid action name $fullActionName")
-            return
-        }
-        if (Tools.isLocalAction(fullActionName)) { // TODO handle local actions
-            LOG.debug("Action $fullActionName is local, skipping resolution")
             return
         }
         resolveActionData(requestExecutor, parts[0], parts[1])
@@ -176,6 +179,7 @@ class GitHubActionDataService(
 
 
     private fun resolveActionData(requestExecutor: GhApiRequestExecutor, actionOrg: String, actionName: String) {
+
         val query = ResourceUtil.getResource(
             GhActionsService::class.java.classLoader, "graphql", "getLatestRelease.graphql"
         )?.readText() ?: ""
@@ -193,7 +197,9 @@ class GitHubActionDataService(
         try {
             val response = requestExecutor.execute(request)
             val version = response.toString().replace("\"", "")
-            actionsCache.put("$actionOrg/$actionName", GitHubAction(actionName, version))
+            val actionData = GitHubAction("$actionOrg/$actionName", version)
+            actionsCache.put(actionData.name, actionData)
+            LOG.info("Resolved data for GitHub action $actionData")
         } catch (e: IOException) {
             LOG.warn("Failed to get latest version of action $actionOrg/$actionName", e)
             return
