@@ -24,10 +24,9 @@ class ProjectStartup : ProjectActivity {
         runReadAction {
             val yamlFiles = FilenameIndex.getAllFilesByExt(project, "yml")
             yamlFiles.addAll(FilenameIndex.getAllFilesByExt(project, "yaml"))
-            val workflowFiles = yamlFiles.filter {
+            yamlFiles.filter {
                 Tools.isActionFile(it) || Tools.isWorkflowFile(it)
-            }
-            workflowFiles.forEach { file ->
+            }.forEach { file ->
                 scanWorkflowFile(project, file)
             }
         }

@@ -4,6 +4,9 @@ import com.dsoftware.ghmanager.api.GhApiRequestExecutor
 import com.dsoftware.ghmanager.i18n.MessagesBundle.message
 import com.dsoftware.ghmanager.toolwindow.executeSomeCoroutineTasksAndDispatchAllInvocationEvents
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.navigation.activateFileWithPsiElement
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.components.service
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -23,6 +26,26 @@ class OutdatedVersionAnnotatorTest {
     @MockK
     lateinit var executorMock: GhApiRequestExecutor
 
+    private val ACTION_TEXT = """           
+            jobs:
+              build:
+                name: Build
+                runs-on: ubuntu-latest   
+                steps:
+                  - name: Fetch Sources
+                    uses: actions/checkout@v2
+            """.trimIndent()
+    private val ACTION_WITH_HIGHLIGHTS = """
+            jobs:
+              build:
+                name: Build
+                runs-on: ubuntu-latest   
+                steps:
+                  - name: Fetch Sources
+                    uses: actions/checkout@<warning descr="v2 is outdated. Latest version is v4.0.0">v2</warning>
+            """.trimIndent()
+
+
     @BeforeEach
     fun setUp() {
         val node = JsonNodeFactory.instance.textNode("v4.0.0")
@@ -40,7 +63,6 @@ class OutdatedVersionAnnotatorTest {
 
         val projectFixture = fixtureFactory.createFixtureBuilder(testName, true)
         val codeInsightFixture = fixtureFactory.createCodeInsightFixture(projectFixture.fixture, tempDirFixture)
-//        val codeInsightFixture = fixtureFactory.createCodeInsightFixture(projectFixture.fixture)
         codeInsightFixture.setUp()
         codeInsightFixture.testDataPath = "/testData"
         return codeInsightFixture
@@ -51,28 +73,8 @@ class OutdatedVersionAnnotatorTest {
     fun testAnnotator() {
         var actionLoaded = false
         val fixture = createTestFixture("testAnnotate")
-        val psiFile = fixture.configureByText(
-            ".github/workflows/workflow1.yaml", """           
-            jobs:
-              build:
-                name: Build
-                runs-on: ubuntu-latest   
-                steps:
-                  - name: Fetch Sources
-                    uses: actions/checkout@v2
-            """.trimIndent()
-        )
-        val virtualFile = fixture.createFile(
-            ".github/workflows/workflow.yaml", """
-            jobs:
-              build:
-                name: Build
-                runs-on: ubuntu-latest   
-                steps:
-                  - name: Fetch Sources
-                    uses: actions/checkout@<warning descr="v2 is outdated. Latest version is v4.0.0">v2</warning>
-            """.trimIndent()
-        )
+        val psiFile = fixture.configureByText(".github/workflows/workflow1.yaml", ACTION_TEXT)
+        val virtualFile = fixture.createFile(".github/workflows/workflow.yaml", ACTION_WITH_HIGHLIGHTS)
         val gitHubActionDataService = fixture.project.service<GitHubActionDataService>()
         gitHubActionDataService.requestExecutor = executorMock
         gitHubActionDataService.actionsToResolve.add("actions/checkout")
@@ -91,6 +93,43 @@ class OutdatedVersionAnnotatorTest {
                 quickFixes.first().text
             )
         }
-
     }
+//
+//    @Test
+//    fun testQuickFix() {
+//        var actionLoaded = false
+//        val fixture = createTestFixture("testAnnotate")
+//        val psiFile = fixture.configureByText(".github/workflows/workflow1.yaml", ACTION_TEXT)
+//        val gitHubActionDataService = fixture.project.service<GitHubActionDataService>()
+//        gitHubActionDataService.requestExecutor = executorMock
+//        gitHubActionDataService.actionsToResolve.add("actions/checkout")
+//        gitHubActionDataService.whenActionsLoaded { actionLoaded = true }
+//        var action: IntentionAction? = null
+//        runInEdtAndWait {
+//            while (!actionLoaded) {
+//                executeSomeCoroutineTasksAndDispatchAllInvocationEvents(fixture.project)
+//            }
+//            fixture.doHighlighting()
+//            executeSomeCoroutineTasksAndDispatchAllInvocationEvents(fixture.project)
+//            val quickFixes = fixture.getAllQuickFixes(psiFile.name)
+//            Assertions.assertEquals(1, quickFixes.size)
+//            action = quickFixes.first()
+//        }
+//
+//        action!!.invoke(fixture.project, fixture.editor, fixture.actionContext.file)
+//        fixture.checkResult(
+//            ".github/workflows/workflow1.yaml",
+//            """
+//                jobs:
+//                  build:
+//                    name: Build
+//                    runs-on: ubuntu-latest
+//                    steps:
+//                      - name: Fetch Sources
+//                        uses: actions/checkout@v4
+//                """.trimIndent(),
+//            false
+//        )
+//    }
+//
 }
