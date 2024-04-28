@@ -1,18 +1,23 @@
 package com.dsoftware.ghmanager.psi
 
+import com.dsoftware.ghmanager.toolwindow.executeSomeCoroutineTasksAndDispatchAllInvocationEvents
 import com.intellij.codeInsight.navigation.openFileWithPsiElement
 import com.intellij.openapi.components.service
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.common.initTestApplication
 import com.intellij.testFramework.junit5.RunInEdt
+import com.intellij.testFramework.junit5.TestApplication
 import com.intellij.testFramework.rules.ProjectModelExtension
 import com.intellij.testFramework.useProject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 
 @RunInEdt(writeIntent = true)
+//@TestApplication
 class ProjectStartupTest {
     init {
         initTestApplication()
@@ -21,6 +26,12 @@ class ProjectStartupTest {
     @JvmField
     @RegisterExtension
     protected val projectRule: ProjectModelExtension = ProjectModelExtension()
+
+    @AfterEach
+    open fun tearDown() {
+        executeSomeCoroutineTasksAndDispatchAllInvocationEvents(projectRule.project)
+        TestApplicationManager.tearDownProjectAndApp(projectRule.project)
+    }
 
     @Test
     fun `testScanWorkflowFile workflow-file is scanned`() {
