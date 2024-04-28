@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 
-class VersionCompareToolsTest {
+class TestVersionCompareTools {
     @Test
     fun testIsActionOutdated() {
         Assertions.assertFalse(VersionCompareTools.isActionOutdated("v4.0.0", "v4.0.0"))

@@ -7,7 +7,7 @@ import org.jetbrains.plugins.github.api.GithubApiContentHelper
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class LogParsingTests {
+class TestLogParsing {
     @Test
     fun `test steps' log showing with right color`() {
         // arrange

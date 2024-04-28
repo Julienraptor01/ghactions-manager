@@ -7,7 +7,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.common.initTestApplication
 import com.intellij.testFramework.junit5.RunInEdt
-import com.intellij.testFramework.junit5.TestApplication
 import com.intellij.testFramework.rules.ProjectModelExtension
 import com.intellij.testFramework.useProject
 import org.junit.jupiter.api.AfterEach
@@ -18,7 +17,7 @@ import org.junit.jupiter.api.extension.RegisterExtension
 
 @RunInEdt(writeIntent = true)
 //@TestApplication
-class ProjectStartupTest {
+class TestProjectStartup {
     init {
         initTestApplication()
     }

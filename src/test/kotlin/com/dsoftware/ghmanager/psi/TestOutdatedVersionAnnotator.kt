@@ -6,13 +6,11 @@ import com.dsoftware.ghmanager.toolwindow.executeSomeCoroutineTasksAndDispatchAl
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.ex.QuickFixWrapper
-import com.intellij.designer.model.QuickFix
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.components.service
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.testFramework.utils.vfs.getPsiFile
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -24,7 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 //@RunInEdt(writeIntent = true)
 @ExtendWith(MockKExtension::class)
-class OutdatedVersionAnnotatorTest {
+class TestOutdatedVersionAnnotator {
     @MockK
     lateinit var executorMock: GhApiRequestExecutor
 
