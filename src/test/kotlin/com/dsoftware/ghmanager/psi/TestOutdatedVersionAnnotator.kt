@@ -14,6 +14,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -93,6 +94,7 @@ class TestOutdatedVersionAnnotator {
                 quickFixes.first().text
             )
         }
+        fixture.tearDown()
     }
 
     @Test
@@ -118,7 +120,8 @@ class TestOutdatedVersionAnnotator {
             WriteCommandAction.runWriteCommandAction(fixture.project) {
                 quickFix.invoke(fixture.project, fixture.editor, fixture.file)
             }
-            Assertions.assertEquals(quickFix.file?.text,
+            Assertions.assertEquals(
+                quickFix.file?.text,
                 """
                 jobs:
                   build:
@@ -129,7 +132,9 @@ class TestOutdatedVersionAnnotator {
                         uses: actions/checkout@v4
                 """.trimIndent()
             )
+            executeSomeCoroutineTasksAndDispatchAllInvocationEvents(fixture.project)
         }
+        fixture.tearDown()
     }
 
 }
